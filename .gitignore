@@ -8,6 +8,7 @@ build/
 .eggs/
 breainstorm/
 .agents/
+qa-screenshots/
 # Virtual environment
 venv/
 env/
