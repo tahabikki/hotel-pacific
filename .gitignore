@@ -1,38 +1,8 @@
-# Python
+.venv/
+.gitignore
 __pycache__/
-*.py[cod]
-*.egg-info/
-dist/
-build/
-*.egg
-.eggs/
+*.pyc
+
 breainstorm/
 .agents/
 qa-screenshots/
-
-# Virtual environment
-venv/
-env/
-.venv/
-
-# Django
-*.db
-*.sqlite3
-media/
-staticfiles/
-static/CACHE/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Environment
-.env
-.env.local
-
-# Project specific
-factures/migrations/__pycache__/
