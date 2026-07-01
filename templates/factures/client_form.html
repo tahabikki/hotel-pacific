@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titre }} | Hotel pacific{% endblock %}
+{% block page_title %}{{ titre }}{% endblock %}
+
+{% block content %}
+<form method="post" class="hc-panel hc-form-panel">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="hc-alert hc-alert-error">{{ form.non_field_errors }}</div>{% endif %}
+
+  <fieldset class="hc-fieldset">
+    <legend>Identite</legend>
+    <div class="hc-form-grid">
+      <div class="hc-field"><label>{{ form.civilite.label }}</label>{{ form.civilite }}{{ form.civilite.errors }}</div>
+      <div class="hc-field"><label>{{ form.nom.label }}</label>{{ form.nom }}{{ form.nom.errors }}</div>
+      <div class="hc-field"><label>{{ form.prenom.label }}</label>{{ form.prenom }}{{ form.prenom.errors }}</div>
+    </div>
+  </fieldset>
+
+  <fieldset class="hc-fieldset">
+    <legend>Contact</legend>
+    <div class="hc-form-grid">
+      <div class="hc-field"><label>{{ form.email.label }}</label>{{ form.email }}{{ form.email.errors }}</div>
+      <div class="hc-field"><label>{{ form.telephone.label }}</label>{{ form.telephone }}{{ form.telephone.errors }}</div>
+      <div class="hc-field hc-field-wide"><label>{{ form.adresse.label }}</label>{{ form.adresse }}{{ form.adresse.errors }}</div>
+      <div class="hc-field"><label>{{ form.ville.label }}</label>{{ form.ville }}{{ form.ville.errors }}</div>
+      <div class="hc-field"><label>{{ form.pays.label }}</label>{{ form.pays }}{{ form.pays.errors }}</div>
+    </div>
+  </fieldset>
+
+  <fieldset class="hc-fieldset">
+    <legend>Notes</legend>
+    <div class="hc-field hc-field-wide">{{ form.notes }}{{ form.notes.errors }}</div>
+  </fieldset>
+
+  <div class="hc-form-actions">
+    <a href="{% url 'clients_liste' %}" class="hc-btn hc-btn-muted">Annuler</a>
+    <button type="submit" class="hc-btn hc-btn-primary"><i class="fas fa-floppy-disk"></i> Enregistrer</button>
+  </div>
+</form>
+{% endblock %}

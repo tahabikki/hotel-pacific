@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Hotel pacific Admin{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'app.css' %}?v=22">
+</head>
+<body class="hc-admin-body">
+  <div class="hc-admin" id="hc-admin">
+    <div class="hc-sidebar-overlay" id="sidebar-overlay"></div>
+    <aside class="hc-sidebar" id="sidebar" aria-label="Navigation principale">
+      <div class="hc-brand">
+        <a href="{% url 'dashboard' %}"><img src="{% static 'assets/white_logo.png' %}" alt="Hotel pacific"></a>
+        <button class="hc-sidebar-close" id="sidebar-close" aria-label="Fermer le menu"><i class="fas fa-xmark"></i></button>
+      </div>
+      <button class="hc-sidebar-collapse" id="sidebar-collapse" aria-label="Reduire le menu" title="Reduire"><i class="fas fa-chevron-left"></i></button>
+
+      <nav class="hc-nav">
+        <a href="{% url 'dashboard' %}" class="hc-nav-link {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">
+          <i class="fas fa-gauge-high"></i><span>Tableau de bord</span>
+        </a>
+        <a href="{% url 'planning_reservations' %}" class="hc-nav-link {% if request.resolver_match.url_name == 'planning_reservations' %}is-active{% endif %}">
+          <i class="fas fa-calendar-days"></i><span>Planning reservations</span>
+        </a>
+
+        <div class="hc-nav-group">
+          <div class="hc-nav-title"><i class="fas fa-file-invoice"></i><span>Factures</span></div>
+          <a href="{% url 'facture_liste' %}" class="hc-nav-link {% if request.resolver_match.url_name == 'facture_liste' %}is-active{% endif %}">
+            <i class="fas fa-list"></i><span>Voir les factures</span>
+          </a>
+        </div>
+
+        <div class="hc-nav-group">
+          <div class="hc-nav-title"><i class="fas fa-address-book"></i><span>Clients</span></div>
+          <a href="{% url 'clients_liste' %}" class="hc-nav-link {% if request.resolver_match.url_name == 'clients_liste' %}is-active{% endif %}">
+            <i class="fas fa-users"></i><span>Voir les clients</span>
+          </a>
+        </div>
+
+        <div class="hc-nav-group">
+          <div class="hc-nav-title"><i class="fas fa-chart-bar"></i><span>Bilan général</span></div>
+          <a href="{% url 'bilan' %}" class="hc-nav-link {% if request.resolver_match.url_name == 'bilan' %}is-active{% endif %}">
+            <i class="fas fa-file-lines"></i><span>Bilan général</span>
+          </a>
+        </div>
+
+        <div class="hc-nav-group">
+          <div class="hc-nav-title"><i class="fas fa-user-shield"></i><span>Utilisateur</span></div>
+          <a href="{% url 'user_settings' %}" class="hc-nav-link {% if request.resolver_match.url_name == 'user_settings' %}is-active{% endif %}">
+            <i class="fas fa-gear"></i><span>Parametres</span>
+          </a>
+          <a href="{% url 'admin:index' %}" class="hc-nav-link">
+            <i class="fas fa-screwdriver-wrench"></i><span>Django admin</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <div class="hc-main">
+      <header class="hc-topbar">
+        <div class="hc-topbar-start">
+          <button class="hc-menu-toggle" id="menu-toggle" aria-label="Menu"><i class="fas fa-bars"></i></button>
+          <div>
+            <p class="hc-eyebrow">Hotel pacific</p>
+            <h1>{% block page_title %}Tableau de bord{% endblock %}</h1>
+          </div>
+        </div>
+        {% if user.is_authenticated %}
+          <div class="hc-user-panel">
+            <span class="hc-user-chip"><i class="fas fa-user-circle"></i>{{ user.get_full_name|default:user.username }}</span>
+            <a class="hc-icon-link" href="{% url 'user_settings' %}" title="Parametres"><i class="fas fa-gear"></i></a>
+            <form method="post" action="{% url 'admin_logout' %}">
+              {% csrf_token %}
+              <button class="hc-icon-link" type="submit" title="Deconnexion"><i class="fas fa-right-from-bracket"></i></button>
+            </form>
+          </div>
+        {% endif %}
+      </header>
+
+      <main class="hc-content">
+        {% if messages %}
+          <div class="hc-messages">
+            {% for message in messages %}
+              <div class="hc-alert hc-alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+  <script src="{% static 'app.js' %}?v=8"></script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titre }} | Hotel pacific{% endblock %}
+{% block page_title %}{{ titre }}{% endblock %}
+
+{% block content %}
+<form method="post" class="hc-panel hc-form-panel" id="facture-form">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  {% if form.non_field_errors %}<div class="hc-alert hc-alert-error">{{ form.non_field_errors }}</div>{% endif %}
+
+  <fieldset class="hc-fieldset">
+    <legend>Identification</legend>
+    <div class="hc-form-grid">
+      {% if facture %}
+      <div class="hc-field"><label>N reservation</label><input type="text" value="{{ facture.numero_reservation }}" readonly class="hc-input-readonly"></div>
+      {% endif %}
+      <div class="hc-field"><label for="{{ form.date_edition.id_for_label }}">Date edition</label>{{ form.date_edition }}{{ form.date_edition.errors }}</div>
+      <div class="hc-field"><label for="{{ form.statut.id_for_label }}">Statut</label>{{ form.statut }}{{ form.statut.errors }}</div>
+    </div>
+  </fieldset>
+
+  <fieldset class="hc-fieldset">
+    <legend>Client</legend>
+    <div class="hc-choice-row">
+      <label class="hc-toggle">{{ form.nouveau_client }} <span>Creer un nouveau client inline</span></label>
+    </div>
+    <div id="client-existant" class="hc-field">
+      <label for="{{ form.client.id_for_label }}">Client existant</label>
+      {{ form.client }}{{ form.client.errors }}
+    </div>
+    <div id="nouveau-client" class="hc-inline-panel">
+      <div class="hc-form-grid">
+        <div class="hc-field"><label for="{{ form.civilite.id_for_label }}">Monsieur/Madame</label>{{ form.civilite }}</div>
+        <div class="hc-field"><label for="{{ form.nom.id_for_label }}">Nom</label>{{ form.nom }}</div>
+        <div class="hc-field"><label for="{{ form.prenom.id_for_label }}">Prenom</label>{{ form.prenom }}</div>
+        <div class="hc-field"><label for="{{ form.email.id_for_label }}">Email</label>{{ form.email }}</div>
+        <div class="hc-field"><label for="{{ form.telephone.id_for_label }}">Telephone</label>{{ form.telephone }}</div>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="hc-fieldset">
+    <legend>Sejour</legend>
+    <div class="hc-form-grid">
+      <div class="hc-field"><label for="{{ form.date_arrivee.id_for_label }}">Arrivee</label>{{ form.date_arrivee }}{{ form.date_arrivee.errors }}</div>
+      <div class="hc-field"><label for="{{ form.date_depart.id_for_label }}">Depart</label>{{ form.date_depart }}{{ form.date_depart.errors }}</div>
+      <div class="hc-field"><label for="{{ form.numero_chambre.id_for_label }}">Chambre</label>{{ form.numero_chambre }}</div>
+      <div class="hc-field"><label for="{{ form.nombre_personnes.id_for_label }}">Personnes</label>{{ form.nombre_personnes }}</div>
+      <div class="hc-field hc-field-wide"><label for="{{ form.type_sejour.id_for_label }}">Type sejour</label>{{ form.type_sejour }}</div>
+    </div>
+  </fieldset>
+
+  <fieldset class="hc-fieldset">
+    <legend>Tarification</legend>
+    <div class="hc-form-grid">
+      <div class="hc-field"><label for="{{ form.prix_chambre_ht.id_for_label }}">Prix HT/nuit</label>{{ form.prix_chambre_ht }}</div>
+      <div class="hc-field"><label for="{{ form.taux_tva.id_for_label }}">TVA (%)</label>{{ form.taux_tva }}</div>
+      <div class="hc-field"><label for="{{ form.taux_taxe_sejour.id_for_label }}">Taxe sejour (%)</label>{{ form.taux_taxe_sejour }}</div>
+      <div class="hc-field" style="display:none">{{ form.taxe_sejour_unitaire }}</div>
+    </div>
+  </fieldset>
+
+  <fieldset class="hc-fieldset" id="extras-section">
+    <legend>Extras / Services supplémentaires</legend>
+    <p style="margin-bottom:12px;color:#667788">Ajoutez des services optionnels (Parking, Petit-déjeuner, etc.)</p>
+    <div class="hc-table-wrap">
+      <table class="hc-table" id="extras-table">
+        <thead>
+          <tr>
+            <th>Extra</th>
+            <th>Quantité</th>
+            <th>Prix unitaire</th>
+            <th>Supprimer</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ef in formset %}
+          <tr class="extra-row">
+            <td>
+              {{ ef.id }}
+              {{ ef.extra }}{{ ef.extra.errors }}
+            </td>
+            <td>{{ ef.quantite }}{{ ef.quantite.errors }}</td>
+            <td>{{ ef.prix_unitaire }}{{ ef.prix_unitaire.errors }}</td>
+            <td>{{ ef.DELETE }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </fieldset>
+
+  <fieldset class="hc-fieldset">
+    <legend>Notes</legend>
+    <div class="hc-field">{{ form.notes }}</div>
+  </fieldset>
+
+  <input type="hidden" name="moyen_paiement" id="moyen_paiement_hidden" value="{{ facture.moyen_paiement|default:'' }}">
+
+  <div class="hc-form-actions">
+    <a href="{% url 'facture_liste' %}" class="hc-btn hc-btn-muted">Annuler</a>
+    <button type="button" class="hc-btn hc-btn-primary" id="btn-enregistrer"><i class="fas fa-floppy-disk"></i> Enregistrer</button>
+  </div>
+</form>
+
+<div id="payment-modal" class="hc-modal-overlay" style="display:none">
+  <div class="hc-modal">
+    <div class="hc-modal-head">
+      <h3>Moyen de paiement</h3>
+      <p>Selectionnez le moyen de paiement utilise par le client.</p>
+    </div>
+    <div class="hc-modal-body">
+      {% for value, label in paiement_choices %}
+      <label class="hc-radio">
+        <input type="radio" name="modal_paiement" value="{{ value }}" {% if value == facture.moyen_paiement %}checked{% endif %}>
+        <span>{{ label }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="hc-modal-actions">
+      <button type="button" class="hc-btn hc-btn-muted" id="modal-skip">Passer</button>
+      <button type="button" class="hc-btn hc-btn-primary" id="modal-confirm">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var cb = document.getElementById('{{ form.nouveau_client.id_for_label }}');
+  var existing = document.getElementById('client-existant');
+  var fresh = document.getElementById('nouveau-client');
+  function syncClientMode() {
+    var createNew = cb && cb.checked;
+    existing.hidden = createNew;
+    fresh.hidden = !createNew;
+  }
+  if (cb) cb.addEventListener('change', syncClientMode);
+  syncClientMode();
+
+  // Extra prices data
+  var extraPrices = {};
+  {% for extra in extras_list %}
+  extraPrices[{{ extra.pk }}] = {{ extra.prix_defaut }};
+  {% endfor %}
+
+  // Auto-load default price when extra is selected
+  function loadExtraPrice(sel) {
+    var pk = parseInt(sel.value);
+    if (pk && extraPrices[pk] !== undefined) {
+      var row = sel.closest('tr');
+      var priceInput = row.querySelector('.extra-prix');
+      if (priceInput) priceInput.value = extraPrices[pk].toFixed(2);
+    }
+  }
+
+  var extraSelects = document.querySelectorAll('.extra-select');
+  extraSelects.forEach(function(sel) {
+    sel.addEventListener('change', function() { loadExtraPrice(this); });
+  });
+
+  // Payment modal
+  var modal = document.getElementById('payment-modal');
+  var btnEnregistrer = document.getElementById('btn-enregistrer');
+  var hiddenInput = document.getElementById('moyen_paiement_hidden');
+  var form = document.getElementById('facture-form');
+
+  btnEnregistrer.addEventListener('click', function() {
+    modal.style.display = 'grid';
+  });
+
+  document.getElementById('modal-confirm').addEventListener('click', function() {
+    var selected = document.querySelector('input[name="modal_paiement"]:checked');
+    if (selected) {
+      hiddenInput.value = selected.value;
+    }
+    modal.style.display = 'none';
+    form.submit();
+  });
+
+  document.getElementById('modal-skip').addEventListener('click', function() {
+    hiddenInput.value = '';
+    modal.style.display = 'none';
+    form.submit();
+  });
+
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      hiddenInput.value = '';
+      modal.style.display = 'none';
+      form.submit();
+    }
+  });
+});
+</script>
+{% endblock %}

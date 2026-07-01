@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Bilan general | Hotel pacific{% endblock %}
+{% block page_title %}Bilan general{% endblock %}
+
+{% block content %}
+<section class="hc-panel">
+  <div class="hc-panel-head">
+    <div>
+      <h2>Filtres</h2>
+      <p>Filtrez les factures puis exportez en CSV ou PDF.</p>
+    </div>
+  </div>
+
+  <form method="get" action="{% url 'bilan' %}" id="bilan-form">
+    <div class="hc-form-grid">
+      <div class="hc-field">
+        <label>Date debut</label>
+        <input type="date" name="date_debut" value="{{ date_debut }}">
+      </div>
+      <div class="hc-field">
+        <label>Date fin</label>
+        <input type="date" name="date_fin" value="{{ date_fin }}">
+      </div>
+      <div class="hc-field">
+        <label>Statut</label>
+        <select name="statut">
+          <option value="">Tous</option>
+          {% for value, label in statut_choices %}
+            <option value="{{ value }}" {% if statut_filtre == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="hc-field">
+        <label>Paiement</label>
+        <select name="paiement">
+          <option value="">Tous</option>
+          {% for value, label in paiement_choices %}
+            <option value="{{ value }}" {% if paiement_filtre == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="hc-field">
+        <label>Client</label>
+        <select name="client">
+          <option value="">Tous</option>
+          {% for c in clients %}
+            <option value="{{ c.pk }}" {% if client_filtre == c.pk|stringformat:"s" %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="hc-field" style="display:flex;align-items:flex-end">
+        <button type="submit" class="hc-btn"><i class="fas fa-filter"></i> Filtrer</button>
+        <a href="{% url 'bilan' %}" class="hc-btn hc-btn-muted" style="margin-left:8px">Reinitialiser</a>
+      </div>
+    </div>
+  </form>
+  <script>
+    (function() {
+      var form = document.getElementById('bilan-form');
+      var inputs = form.querySelectorAll('input, select');
+      function refresh() {
+        var results = document.querySelector('.bilan-results');
+        if (!results) return;
+        var params = new URLSearchParams(new FormData(form));
+        params.set('_ajax', '1');
+        fetch(form.action + '?' + params.toString())
+          .then(function(r) { return r.text(); })
+          .then(function(html) {
+            results.innerHTML = html;
+            if (typeof initColumnToggles === 'function') initColumnToggles();
+          });
+      }
+      for (var i = 0; i < inputs.length; i++) {
+        if (inputs[i].type !== 'submit' && inputs[i].name !== '') {
+          inputs[i].addEventListener('change', refresh);
+        }
+      }
+    })();
+  </script>
+</section>
+
+<div class="bilan-results">
+  {% include 'factures/bilan_results.html' %}
+</div>
+
+<style>
+.hc-link-plain { color:inherit; text-decoration:none; cursor:pointer; }
+.hc-link-plain:hover { color:var(--primary,#3d1620); text-decoration:underline; }
+.hc-col-toggles { display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+.hc-tag-toggle { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border:1px solid #d0d8e0; border-radius:20px; font-size:0.8rem; color:#445566; cursor:pointer; transition:all .15s; user-select:none; background:#fff; }
+.hc-tag-toggle:hover { border-color:#94a3b8; background:#f1f5f9; }
+.hc-tag-toggle input { accent-color:#3d1620; margin:0; }
+.hc-tag-toggle:has(input:checked) { background:#3d1620; color:#fff; border-color:#3d1620; }
+</style>
+<script>
+function exportBilan(format) {
+  var form = document.getElementById('bilan-form');
+  var url = format === 'csv' ? '{% url "export_csv" %}' : '{% url "export_pdf" %}';
+  var inputs = form.querySelectorAll('input, select');
+  var params = [];
+  for (var i = 0; i < inputs.length; i++) {
+    if (inputs[i].name && inputs[i].value) {
+      params.push(encodeURIComponent(inputs[i].name) + '=' + encodeURIComponent(inputs[i].value));
+    }
+  }
+  window.location.href = url + '?' + params.join('&');
+}
+
+function initColumnToggles() {
+  var table = document.querySelector('.hc-table');
+  if (!table) return;
+  var toggles = document.querySelectorAll('#column-toggles input');
+  toggles.forEach(function(cb) {
+    var col = parseInt(cb.dataset.col);
+    var saved = localStorage.getItem('bilan_col_' + col);
+    if (saved !== null) cb.checked = saved === 'true';
+    applyCol(col, cb.checked);
+    cb.addEventListener('change', function() {
+      var v = this.checked;
+      localStorage.setItem('bilan_col_' + col, v);
+      applyCol(col, v);
+    });
+  });
+  function applyCol(col, visible) {
+    table.querySelectorAll('thead tr, tbody tr').forEach(function(row) {
+      var cell = row.children[col];
+      if (cell) cell.style.display = visible ? '' : 'none';
+    });
+  }
+}
+initColumnToggles();
+</script>
+{% endblock %}

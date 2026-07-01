@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Factures | Hotel pacific{% endblock %}
+{% block page_title %}Factures{% endblock %}
+
+{% block content %}
+<section class="hc-panel">
+  <div class="hc-panel-head">
+    <div>
+      <h2>Gestion des factures</h2>
+      <p>Recherche, consultation, edition et export PDF.</p>
+    </div>
+    <a href="{% url 'facture_create' %}" class="hc-btn hc-btn-primary"><i class="fas fa-plus"></i> Nouvelle facture</a>
+  </div>
+
+  <form method="get" class="hc-filterbar">
+    <input type="text" name="q" value="{{ q }}" placeholder="Rechercher par numero ou client">
+    <select name="statut">
+      <option value="">Tous les statuts</option>
+      {% for value, label in statuts %}
+        <option value="{{ value }}" {% if value == statut %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="hc-btn"><i class="fas fa-filter"></i> Filtrer</button>
+    {% if q or statut %}
+      <a href="{% url 'facture_liste' %}" class="hc-btn hc-btn-muted"><i class="fas fa-rotate-left"></i> Reset</a>
+    {% endif %}
+  </form>
+
+  <div class="hc-table-wrap">
+    <table class="hc-table hc-actions-table">
+      <thead>
+        <tr>
+          <th>N resa</th>
+          <th>Client</th>
+          <th>Arrivee</th>
+          <th>Depart</th>
+          <th>Nuits</th>
+          <th>Statut</th>
+          <th>Paiement</th>
+          <th class="hc-num">Total TTC</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in factures %}
+          <tr>
+            <td><strong>{{ f.numero_reservation }}</strong></td>
+            <td>{{ f.client }}</td>
+            <td>{{ f.date_arrivee|date:"d/m/Y" }}</td>
+            <td>{{ f.date_depart|date:"d/m/Y" }}</td>
+            <td>{{ f.nombre_nuits }}</td>
+            <td><span class="hc-badge hc-badge-{{ f.statut|lower }}">{{ f.get_statut_display }}</span></td>
+            <td>{{ f.get_moyen_paiement_display|default:"-" }}</td>
+            <td class="hc-num">{{ f.total_ttc }} EUR</td>
+            <td class="hc-actions">
+              <a href="{% url 'facture_detail' f.pk %}" title="Voir / scanner"><i class="fas fa-eye"></i></a>
+              <a href="{% url 'facture_update' f.pk %}" title="Modifier"><i class="fas fa-pen"></i></a>
+              <a href="{% url 'facture_pdf' f.pk %}" target="_blank" title="Voir PDF"><i class="fas fa-file-pdf"></i></a>
+              <a href="{% url 'facture_pdf' f.pk %}?disposition=attachment" title="Telecharger PDF"><i class="fas fa-download"></i></a>
+              <a href="{% url 'facture_delete' f.pk %}" title="Supprimer" class="is-danger"><i class="fas fa-trash"></i></a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="9" class="hc-empty">Aucune facture trouvee.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if is_paginated %}
+    <nav class="hc-pagination" aria-label="Pagination">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{{ page_query }}"><i class="fas fa-chevron-left"></i> Precedent <i class="fas fa-chevron-right"></i></a>
+      {% else %}
+        <span class="is-disabled"><i class="fas fa-chevron-left"></i> Precedent <i class="fas fa-chevron-right"></i></span>
+      {% endif %}
+      <strong>Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</strong>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{{ page_query }}"><i class="fas fa-chevron-left"></i> Suivant <i class="fas fa-chevron-right"></i></a>
+      {% else %}
+        <span class="is-disabled"><i class="fas fa-chevron-left"></i> Suivant <i class="fas fa-chevron-right"></i></span>
+      {% endif %}
+    </nav>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Parametres | Hotel pacific{% endblock %}
+{% block page_title %}Parametres utilisateur{% endblock %}
+
+{% block content %}
+<div class="hc-two-col hc-settings-grid">
+  <form method="post" class="hc-panel hc-form-panel">
+    {% csrf_token %}
+    <input type="hidden" name="form_kind" value="profile">
+    <div class="hc-panel-head">
+      <div>
+        <h2>Profil</h2>
+        <p>Nom, identifiant et email du compte connecte.</p>
+      </div>
+    </div>
+    <div class="hc-form-grid">
+      {% for field in profile_form %}
+        <div class="hc-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+    </div>
+    <div class="hc-form-actions">
+      <button type="submit" class="hc-btn hc-btn-primary"><i class="fas fa-floppy-disk"></i> Mettre a jour</button>
+    </div>
+  </form>
+
+  <form method="post" class="hc-panel hc-form-panel">
+    {% csrf_token %}
+    <input type="hidden" name="form_kind" value="password">
+    <div class="hc-panel-head">
+      <div>
+        <h2>Mot de passe</h2>
+        <p>Changer le mot de passe sans fermer la session.</p>
+      </div>
+    </div>
+    {{ password_form.non_field_errors }}
+    <div class="hc-form-grid">
+      {% for field in password_form %}
+        <div class="hc-field hc-field-wide">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+    </div>
+    <div class="hc-form-actions">
+      <button type="submit" class="hc-btn hc-btn-primary"><i class="fas fa-key"></i> Changer</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

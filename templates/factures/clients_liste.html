@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Clients | Hotel pacific{% endblock %}
+{% block page_title %}Clients{% endblock %}
+
+{% block content %}
+<section class="hc-panel">
+  <div class="hc-panel-head">
+    <div>
+      <h2>Gestion des clients</h2>
+      <p>Recherche, consultation et modification des fiches clients.</p>
+    </div>
+    <a href="{% url 'client_create' %}" class="hc-btn hc-btn-primary"><i class="fas fa-user-plus"></i> Nouveau client</a>
+  </div>
+
+  <form method="get" class="hc-filterbar">
+    <input type="text" name="q" value="{{ q }}" placeholder="Rechercher par nom, email ou telephone">
+    <button type="submit" class="hc-btn"><i class="fas fa-search"></i> Chercher</button>
+    {% if q %}<a href="{% url 'clients_liste' %}" class="hc-btn hc-btn-muted"><i class="fas fa-rotate-left"></i> Reset</a>{% endif %}
+  </form>
+
+  <div class="hc-table-wrap">
+    <table class="hc-table hc-actions-table hc-clients-table">
+      <thead>
+        <tr>
+          <th>Civilite & nom</th>
+          <th>Telephone</th>
+          <th>Email</th>
+          <th>Factures</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for client in clients %}
+          <tr>
+            <td><strong>{{ client.civilite_abrev }} {{ client.nom|upper }} {{ client.prenom }}</strong></td>
+            <td>{{ client.telephone|default:"-" }}</td>
+            <td>{{ client.email|default:"-" }}</td>
+            <td><span class="hc-badge">{{ client.factures.count }}</span></td>
+            <td class="hc-actions">
+              <a href="{% url 'client_update' client.pk %}" title="Modifier"><i class="fas fa-pen"></i></a>
+              <a href="{% url 'client_delete' client.pk %}" title="Supprimer" class="is-danger"><i class="fas fa-trash"></i></a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="hc-empty">Aucun client trouve.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if is_paginated %}
+    <nav class="hc-pagination" aria-label="Pagination">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{{ page_query }}"><i class="fas fa-chevron-left"></i> Precedent <i class="fas fa-chevron-right"></i></a>
+      {% else %}
+        <span class="is-disabled"><i class="fas fa-chevron-left"></i> Precedent <i class="fas fa-chevron-right"></i></span>
+      {% endif %}
+      <strong>Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</strong>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{{ page_query }}"><i class="fas fa-chevron-left"></i> Suivant <i class="fas fa-chevron-right"></i></a>
+      {% else %}
+        <span class="is-disabled"><i class="fas fa-chevron-left"></i> Suivant <i class="fas fa-chevron-right"></i></span>
+      {% endif %}
+    </nav>
+  {% endif %}
+</section>
+{% endblock %}

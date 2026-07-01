@@ -1,0 +1,143 @@
+<div id="planning-content">
+<section class="hc-panel hc-ops-panel" id="ops-panel">
+  <div class="hc-ops-head">
+    <div>
+      <h2>{{ selected_date|date:"l d F Y" }}</h2>
+      <p>{{ today_in_house|length }} chambre(s) occupee(s), {{ today_arrivals|length }} arrivee(s), {{ today_departures|length }} depart(s)</p>
+    </div>
+    <div class="hc-action-row">
+      <a href="{% url 'facture_create' %}" class="hc-btn hc-btn-primary"><i class="fas fa-plus"></i> Nouvelle reservation</a>
+      <a href="{% url 'facture_liste' %}" class="hc-btn"><i class="fas fa-list"></i> Liste factures</a>
+    </div>
+  </div>
+
+  <form method="get" class="hc-filterbar hc-planner-datebar" id="planner-date-form">
+    <label>Du</label>
+    <input type="date" name="date_debut" value="{{ date_debut|date:'Y-m-d' }}" id="planner-date-debut">
+    <label>Au</label>
+    <input type="date" name="date_fin" value="{{ date_fin|date:'Y-m-d' }}" id="planner-date-fin">
+    <button class="hc-btn" type="submit"><i class="fas fa-calendar-check"></i> Voir</button>
+  </form>
+
+  <div class="hc-today-grid">
+    <article class="hc-today-card">
+      <span><i class="fas fa-door-open"></i></span>
+      <strong>{{ today_arrivals|length }}</strong>
+      <p>Arrivees</p>
+    </article>
+    <article class="hc-today-card">
+      <span><i class="fas fa-door-closed"></i></span>
+      <strong>{{ today_departures|length }}</strong>
+      <p>Departs</p>
+    </article>
+    <article class="hc-today-card">
+      <span><i class="fas fa-bed"></i></span>
+      <strong>{{ today_in_house|length }}</strong>
+      <p>Occupees</p>
+    </article>
+    <article class="hc-today-card">
+      <span><i class="fas fa-hotel"></i></span>
+      <strong>{{ params.nombre_chambres }}</strong>
+      <p>Chambres</p>
+    </article>
+  </div>
+</section>
+
+<section class="hc-panel hc-planner-panel hc-planner-wide" id="planner-panel">
+  <div class="hc-planner-toolbar">
+    <div>
+      <h2>Planning chambres</h2>
+      <p>Glissez horizontalement pour voir toutes les dates</p>
+    </div>
+    <div class="hc-action-row">
+      <a class="hc-btn hc-btn-muted planner-nav" href="?date={{ previous_date|date:'Y-m-d' }}&date_debut={{ previous_date_debut|date:'Y-m-d' }}&date_fin={{ previous_date_fin|date:'Y-m-d' }}" title="Jour precedent"><i class="fas fa-chevron-left"></i></a>
+      <input type="date" class="planner-date-trigger" value="{{ selected_date|date:'Y-m-d' }}" id="planner-date-trigger">
+      <a class="hc-btn hc-btn-muted planner-nav" href="?date={{ next_date|date:'Y-m-d' }}&date_debut={{ next_date_debut|date:'Y-m-d' }}&date_fin={{ next_date_fin|date:'Y-m-d' }}" title="Jour suivant"><i class="fas fa-chevron-right"></i></a>
+    </div>
+  </div>
+
+  <div class="hc-room-planner-wrap">
+    <table class="hc-room-planner hc-room-planner-large">
+      <thead>
+        <tr>
+          <th>Chambre</th>
+          {% for day in planner_days %}
+            <th class="{% if day == selected_date %}is-selected{% endif %}">
+              <span>{{ day|date:"D" }}</span>
+              <strong>{{ day|date:"d/m" }}</strong>
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in room_rows %}
+          <tr>
+            <th>
+              <strong>Ch {{ row.room }}</strong>
+              <span>{{ row.room_type }}</span>
+            </th>
+            {% for cell in row.cells %}
+              <td colspan="{{ cell.colspan }}" class="{% if cell.reservations %}is-occupied is-booking-span{% else %}is-free{% endif %} {% if cell.continues_from_before %}is-clipped-start{% endif %} {% if cell.continues_after %}is-clipped-end{% endif %} {% if cell.is_today %}is-today{% endif %} {% if cell.is_selected %}is-selected{% endif %}">
+                {% if cell.reservations %}
+                  {% for f in cell.reservations %}
+                    <a class="hc-booking hc-booking-{{ f.statut|lower }}" href="{% url 'facture_detail' f.pk %}" title="{{ f.client }} - chambre {{ f.numero_chambre }} - {{ f.date_arrivee|date:'d/m/Y' }} au {{ f.date_depart|date:'d/m/Y' }}">
+                      <span>{{ f.client.nom|upper }}</span>
+                      <small>Ch {{ f.numero_chambre }} - {{ row.room_type }}</small>
+                    </a>
+                  {% endfor %}
+                {% else %}
+                  <a class="hc-free-slot" href="{% url 'facture_create' %}?date_arrivee={{ cell.date|date:'Y-m-d' }}&numero_chambre={{ row.room }}" title="Creer une reservation">Libre</a>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="hc-panel hc-calendar-panel" id="calendar-panel">
+  <div class="hc-panel-head">
+    <div>
+      <h2>{{ visible_month|date:"F Y" }}</h2>
+      <p>Calendrier mensuel rapide. Cliquez un jour avec le champ date pour deplacer le planning.</p>
+    </div>
+    <div class="hc-action-row">
+      <a class="hc-btn hc-btn-muted planner-nav" href="?date={{ selected_date|date:'Y-m-d' }}&date_debut={{ date_debut|date:'Y-m-d' }}&date_fin={{ date_fin|date:'Y-m-d' }}&planner_month={{ prev_month.month }}&planner_year={{ prev_month.year }}"><i class="fas fa-chevron-left"></i> Mois precedent <i class="fas fa-chevron-right"></i></a>
+      <a class="hc-btn hc-btn-muted planner-nav" href="?date={{ selected_date|date:'Y-m-d' }}&date_debut={{ date_debut|date:'Y-m-d' }}&date_fin={{ date_fin|date:'Y-m-d' }}&planner_month={{ next_month.month }}&planner_year={{ next_month.year }}"><i class="fas fa-chevron-left"></i> Mois suivant <i class="fas fa-chevron-right"></i></a>
+    </div>
+  </div>
+
+  <div class="hc-calendar">
+    <div class="hc-calendar-weekdays">
+      <span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span>
+    </div>
+    <div class="hc-calendar-grid">
+      {% for week in calendar_weeks %}
+        {% for day in week %}
+          <article class="hc-day hc-day-{{ day.level }} {% if not day.in_month %}is-muted{% endif %} {% if day.is_today %}is-today{% endif %} {% if day.is_selected %}is-selected{% endif %}">
+            <header>
+              <strong>{{ day.date|date:"j" }}</strong>
+              {% if day.occupancy %}<span>{{ day.occupancy }}</span>{% endif %}
+            </header>
+            {% if day.arrivals or day.departures %}
+              <div class="hc-day-flow">
+                {% if day.arrivals %}<small>{{ day.arrivals }} arr.</small>{% endif %}
+                {% if day.departures %}<small>{{ day.departures }} dep.</small>{% endif %}
+              </div>
+            {% endif %}
+            <div class="hc-day-resas">
+              {% for f in day.reservations %}
+                <a href="{% url 'facture_detail' f.pk %}" title="{{ f.client }} - chambre {{ f.numero_chambre }}">
+                  Ch {{ f.numero_chambre }} - {{ f.client.nom|upper }}
+                </a>
+              {% endfor %}
+            </div>
+          </article>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+</div>

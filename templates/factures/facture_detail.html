@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Facture {{ facture.numero_reservation }} | Hotel pacific{% endblock %}
+{% block page_title %}Facture n {{ facture.numero_reservation }}{% endblock %}
+
+{% block content %}
+<section class="hc-panel">
+  <div class="hc-panel-head">
+    <div>
+      <h2>Apercu et scan</h2>
+      <p>Controle rapide avant edition ou export PDF.</p>
+    </div>
+    <div class="hc-action-row">
+      {% if previous_facture %}
+        <a href="{% url 'facture_detail' previous_facture.pk %}" class="hc-btn hc-btn-muted" title="Reservation precedente"><i class="fas fa-arrow-left"></i></a>
+      {% endif %}
+      {% if next_facture %}
+        <a href="{% url 'facture_detail' next_facture.pk %}" class="hc-btn hc-btn-muted" title="Reservation suivante"><i class="fas fa-arrow-right"></i></a>
+      {% endif %}
+      <a href="{% url 'facture_liste' %}" class="hc-btn hc-btn-muted"><i class="fas fa-list"></i> Liste</a>
+      <a href="{% url 'facture_update' facture.pk %}" class="hc-btn"><i class="fas fa-pen"></i> Modifier</a>
+      <a href="{% url 'facture_pdf' facture.pk %}" target="_blank" class="hc-btn hc-btn-primary"><i class="fas fa-file-pdf"></i> Voir PDF</a>
+      <a href="{% url 'facture_pdf' facture.pk %}?disposition=attachment" class="hc-btn hc-btn-primary"><i class="fas fa-download"></i> Telecharger</a>
+      <a href="{% url 'facture_delete' facture.pk %}" class="hc-btn hc-btn-danger"><i class="fas fa-trash"></i> Supprimer</a>
+    </div>
+  </div>
+
+  <article class="hc-invoice-preview">
+    <header>
+      <h2>Hotel pacific</h2>
+      <p>40 rue du duc de guise, 62100 Calais</p>
+      <p>T&eacute;l. : 0321345024 Fax : 0321975802 | sunetap.yahi@gmail.com</p>
+    </header>
+
+    <div class="hc-invoice-meta">
+      <div>
+        <strong>{{ facture.get_statut_display|upper }}</strong>
+        <p>Reservation n {{ facture.numero_reservation }}</p>
+        <p>Arrivee : {{ facture.date_arrivee|date:"d/m/Y" }}</p>
+        <p>Depart : {{ facture.date_depart|date:"d/m/Y" }}</p>
+        <p>Nuits : {{ facture.nombre_nuits }}</p>
+        <p>Personnes : {{ facture.nombre_personnes }}</p>
+      </div>
+      <div style="text-align:right">
+        <p>Editee le {{ facture.date_edition|date:"d/m/Y" }}</p>
+        <strong>{{ facture.client.nom_complet_majuscule }}</strong>
+        {% if facture.moyen_paiement %}
+          <p>Paiement : {{ facture.get_moyen_paiement_display }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="hc-table-wrap">
+      <table class="hc-invoice-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Chb</th>
+            <th>Pers.</th>
+            <th class="hc-num">Taxe sejour</th>
+            <th class="hc-num">Chambre</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for date_nuit in facture.dates_nuitees %}
+            <tr>
+              <td>{{ date_nuit|date:"d/m/Y" }}</td>
+              <td>{{ facture.numero_chambre }}</td>
+              <td>{{ facture.nombre_personnes }}</td>
+              <td class="hc-num">{{ facture.taxe_sejour_par_nuit }} EUR</td>
+              <td class="hc-num">{{ facture.prix_chambre_ttc_par_nuit }} EUR</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if extras %}
+    <div style="margin-top:16px">
+      <h4 style="margin:0 0 8px">Extras / Services suppl&eacute;mentaires</h4>
+      <div class="hc-table-wrap">
+        <table class="hc-invoice-table">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th class="hc-num">Quantit&eacute;</th>
+              <th class="hc-num">Prix unitaire</th>
+              <th class="hc-num">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in extras %}
+            <tr>
+              <td>{{ e.extra.nom }}</td>
+              <td class="hc-num">{{ e.quantite }}</td>
+              <td class="hc-num">{{ e.prix_unitaire }} EUR</td>
+              <td class="hc-num">{{ e.total_price }} EUR</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="hc-table-wrap" style="margin-top:10px">
+      <table class="hc-invoice-table">
+        <tbody>
+          <tr><td class="hc-num"><strong>Montant s&eacute;jour HT</strong></td><td class="hc-num"><strong>{{ facture.montant_sejour_ht }} EUR</strong></td></tr>
+          <tr><td class="hc-num">Total extras</td><td class="hc-num">{{ facture.total_extras_calcule }} EUR</td></tr>
+          <tr><td class="hc-num"><strong>Total HT</strong></td><td class="hc-num"><strong>{{ facture.montant_ht }} EUR</strong></td></tr>
+          <tr><td class="hc-num">TVA ({{ facture.taux_tva }}%)</td><td class="hc-num">{{ facture.montant_tva }} EUR</td></tr>
+          <tr><td class="hc-num">Taxe sejour ({{ facture.taux_taxe_sejour }}%)</td><td class="hc-num">{{ facture.montant_taxe_sejour }} EUR</td></tr>
+          <tr><td class="hc-num"><strong>Total TTC</strong></td><td class="hc-num"><strong>{{ facture.total_ttc }} EUR</strong></td></tr>
+          <tr><td class="hc-num"><strong>Reste d&ucirc;</strong></td><td class="hc-num"><strong>{{ facture.reste_du }} EUR</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    {% if facture.notes %}
+      <div class="hc-notes">{{ facture.notes|linebreaks }}</div>
+    {% endif %}
+  </article>
+</section>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer client | Hotel pacific{% endblock %}
+{% block page_title %}Supprimer client{% endblock %}
+
+{% block content %}
+<section class="hc-panel hc-danger-panel">
+  <h2>Confirmer la suppression</h2>
+  <p>Supprimer <strong>{{ client }}</strong> du carnet clients ?</p>
+  <form method="post" class="hc-form-actions">
+    {% csrf_token %}
+    <a href="{% url 'clients_liste' %}" class="hc-btn hc-btn-muted">Annuler</a>
+    <button type="submit" class="hc-btn hc-btn-danger"><i class="fas fa-trash"></i> Supprimer</button>
+  </form>
+</section>
+{% endblock %}

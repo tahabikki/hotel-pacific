@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer facture | Hotel pacific{% endblock %}
+{% block page_title %}Supprimer facture{% endblock %}
+
+{% block content %}
+<section class="hc-panel hc-danger-panel">
+  <h2>Confirmer la suppression</h2>
+  <p>Supprimer la facture <strong>n {{ facture.numero_reservation }}</strong> de <strong>{{ facture.client }}</strong> ?</p>
+  <form method="post" class="hc-form-actions">
+    {% csrf_token %}
+    <a href="{% url 'facture_detail' facture.pk %}" class="hc-btn hc-btn-muted">Annuler</a>
+    <button type="submit" class="hc-btn hc-btn-danger"><i class="fas fa-trash"></i> Supprimer</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,90 @@
+<section class="hc-panel">
+  <div class="hc-panel-head">
+    <h2 style="font-size:1.1rem;font-weight:600;color:#334455">Les statistiques &mdash; {{ total_factures }} facture(s)</h2>
+  </div>
+  <div class="hc-stats-grid" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+    <article class="hc-stat" style="text-align:center;background:var(--primary,#3d1620);color:#fff">
+      <strong style="font-size:26px;display:block;margin-top:8px;text-align:center;color:#fff">{{ total_ht }} &euro;</strong>
+      <p style="text-align:center;color:#e0c4cb;font-weight:600">Chiffre d'affaires (HT)</p>
+    </article>
+    <article class="hc-stat" style="text-align:center">
+      <strong style="font-size:24px;display:block;margin-top:8px;text-align:center">{{ total_extras }} &euro;</strong>
+      <p style="text-align:center">Total extras</p>
+    </article>
+    <article class="hc-stat" style="text-align:center">
+      <strong style="font-size:24px;display:block;margin-top:8px;text-align:center">{{ total_tva }} &euro;</strong>
+      <p style="text-align:center">TVA ({{ params.tva_defaut }}%)</p>
+    </article>
+    <article class="hc-stat" style="text-align:center">
+      <strong style="font-size:24px;display:block;margin-top:8px;text-align:center">{{ total_taxe }} &euro;</strong>
+      <p style="text-align:center">Taxe sejour ({{ params.taxe_sejour_pourcentage }}%)</p>
+    </article>
+    <article class="hc-stat" style="text-align:center">
+      <strong style="font-size:24px;display:block;margin-top:8px;text-align:center">{{ total_ttc }} &euro;</strong>
+      <p style="text-align:center">Total TTC</p>
+    </article>
+  </div>
+</section>
+
+<section class="hc-panel">
+  <div class="hc-panel-head">
+    <h2>Factures</h2>
+    <div class="hc-col-toggles" id="column-toggles">
+      <span style="font-size:0.85rem;color:#667788;margin-right:8px">Colonnes :</span>
+      <label class="hc-tag-toggle"><input type="checkbox" data-col="0" checked> N&deg;</label>
+      <label class="hc-tag-toggle"><input type="checkbox" data-col="1" checked> Client</label>
+      <label class="hc-tag-toggle"><input type="checkbox" data-col="2" checked> Arrivee</label>
+      <label class="hc-tag-toggle"><input type="checkbox" data-col="3" checked> Depart</label>
+      <label class="hc-tag-toggle"><input type="checkbox" data-col="4" checked> Nuits</label>
+      <label class="hc-tag-toggle"><input type="checkbox" data-col="5" checked> Paiement</label>
+      <label class="hc-tag-toggle"><input type="checkbox" data-col="6" checked> HT</label>
+      <label class="hc-tag-toggle"><input type="checkbox" data-col="7" checked> Extras</label>
+      <label class="hc-tag-toggle"><input type="checkbox" data-col="8" checked> TVA</label>
+      <label class="hc-tag-toggle"><input type="checkbox" data-col="9" checked> Taxe</label>
+      <label class="hc-tag-toggle"><input type="checkbox" data-col="10" checked> TTC</label>
+    </div>
+  </div>
+  <div class="hc-table-wrap">
+    <table class="hc-table">
+      <thead>
+        <tr>
+          <th>N&deg;</th>
+          <th>Client</th>
+          <th>Arrivee</th>
+          <th>Depart</th>
+          <th>Nuits</th>
+          <th>Paiement</th>
+          <th class="hc-num">HT</th>
+          <th class="hc-num">Extras</th>
+          <th class="hc-num">TVA</th>
+          <th class="hc-num">Taxe</th>
+          <th class="hc-num">TTC</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in factures %}
+        <tr>
+          <td><a href="{% url 'facture_detail' f.pk %}" class="hc-link-plain">{{ f.numero_reservation }}</a></td>
+          <td>{{ f.client }}</td>
+          <td>{{ f.date_arrivee|date:"d/m/Y" }}</td>
+          <td>{{ f.date_depart|date:"d/m/Y" }}</td>
+          <td>{{ f.nombre_nuits }}</td>
+          <td>{{ f.get_moyen_paiement_display|default:"-" }}</td>
+          <td class="hc-num">{{ f.montant_ht }} EUR</td>
+          <td class="hc-num">{{ f.total_extras_calcule }} EUR</td>
+          <td class="hc-num">{{ f.montant_tva }} EUR</td>
+          <td class="hc-num">{{ f.montant_taxe_sejour }} EUR</td>
+          <td class="hc-num">{{ f.total_ttc }} EUR</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="11" style="text-align:center;padding:24px;color:#99aabb">Aucune facture trouvee</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="hc-form-actions" style="margin-top:16px">
+    <button type="button" class="hc-btn hc-btn-primary" onclick="exportBilan('csv')"><i class="fas fa-file-csv"></i> Export CSV</button>
+    <button type="button" class="hc-btn hc-btn-primary" onclick="exportBilan('pdf')"><i class="fas fa-file-pdf"></i> Export PDF</button>
+  </div>
+</section>

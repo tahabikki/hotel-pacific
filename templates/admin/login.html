@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion | Hotel pacific</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'app.css' %}?v=10">
+</head>
+<body class="hc-login-body">
+  <main class="hc-login">
+    <section class="hc-login-card">
+      <div class="hc-login-mark"><i class="fas fa-lock"></i></div>
+      <h1>Connexion admin</h1>
+      <p>Hotel pacific</p>
+
+      {% if form.errors %}
+        <div class="hc-alert hc-alert-error">Identifiants invalides. Verifiez le nom d'utilisateur et le mot de passe.</div>
+      {% endif %}
+
+      <form method="post" class="hc-form">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next|default:'/admin/' }}">
+        <div class="hc-field">
+          <label for="{{ form.username.id_for_label }}">Nom d'utilisateur</label>
+          {{ form.username }}
+        </div>
+        <div class="hc-field">
+          <label for="{{ form.password.id_for_label }}">Mot de passe</label>
+          {{ form.password }}
+        </div>
+        <button type="submit" class="hc-btn hc-btn-primary hc-btn-block">
+          <i class="fas fa-right-to-bracket"></i> Se connecter
+        </button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

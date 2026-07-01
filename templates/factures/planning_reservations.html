@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Planning reservations | Hotel pacific{% endblock %}
+{% block page_title %}Planning reservations{% endblock %}
+
+{% block content %}
+<div id="planning-content">
+  {% include 'factures/planning_partial.html' %}
+</div>
+
+<script>
+(function() {
+  var container = document.getElementById('planning-content');
+  if (!container) return;
+
+  function ajaxLoad(url) {
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function(r) { if (!r.ok) throw new Error(); return r.text(); })
+      .then(function(html) {
+        var temp = document.createElement('div');
+        temp.innerHTML = html;
+        var newContent = temp.querySelector('#planning-content');
+        if (!newContent) throw new Error('Missing content');
+        container.innerHTML = newContent.innerHTML;
+        history.replaceState(null, '', window.location.pathname + url);
+      })
+      .catch(function() { window.location.href = url; });
+  }
+
+  container.addEventListener('click', function(e) {
+    var link = e.target.closest('.planner-nav');
+    if (!link) return;
+    e.preventDefault();
+    ajaxLoad(link.getAttribute('href'));
+  });
+
+  container.addEventListener('submit', function(e) {
+    var form = e.target.closest('#planner-date-form');
+    if (!form) return;
+    e.preventDefault();
+    var deb = form.querySelector('#planner-date-debut');
+    var fin = form.querySelector('#planner-date-fin');
+    var params = {};
+    if (deb && deb.value) params.date_debut = deb.value;
+    if (fin && fin.value) params.date_fin = fin.value;
+    ajaxLoad('?' + new URLSearchParams(params).toString());
+  });
+
+  container.addEventListener('change', function(e) {
+    var picker = e.target.closest('#planner-date-trigger');
+    if (!picker || !picker.value) return;
+    ajaxLoad('?' + new URLSearchParams({ date: picker.value }).toString());
+  });
+})();
+</script>
+{% endblock %}

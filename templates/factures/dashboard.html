@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de bord | Hotel pacific{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+
+{% block content %}
+
+<section class="hc-panel">
+  <div class="hc-panel-head">
+    <div>
+      <h2>Statistiques</h2>
+      <p>Choisissez une periode pour voir les chiffres de facturation.</p>
+    </div>
+    <a href="{% url 'planning_reservations' %}" class="hc-btn hc-btn-primary"><i class="fas fa-calendar-days"></i> Ouvrir planning</a>
+  </div>
+
+  <form method="get" class="hc-filterbar hc-dashboard-filter">
+    <input type="date" name="date_debut" value="{{ date_debut }}">
+    <input type="date" name="date_fin" value="{{ date_fin }}">
+    <select name="statut">
+      <option value="">Tous les statuts</option>
+      {% for value, label in statut_choices %}
+        <option value="{{ value }}" {% if value == statut_filtre %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="paiement">
+      <option value="">Tous les paiements</option>
+      {% for value, label in paiement_choices %}
+        <option value="{{ value }}" {% if value == paiement_filtre %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="hc-btn"><i class="fas fa-filter"></i> Filtrer</button>
+    <a href="{% url 'dashboard' %}" class="hc-btn hc-btn-muted"><i class="fas fa-rotate-left"></i> Reset</a>
+  </form>
+</section>
+
+<section class="hc-panel">
+  <div class="hc-stats-grid hc-dashboard-stats">
+    <article class="hc-stat">
+      <span><i class="fas fa-file-invoice"></i></span>
+      <strong>{{ total_factures }}</strong>
+      <p>Factures</p>
+    </article>
+    <article class="hc-stat">
+      <span><i class="fas fa-users"></i></span>
+      <strong>{{ total_clients }}</strong>
+      <p>Clients</p>
+    </article>
+    <article class="hc-stat">
+      <span><i class="fas fa-check-circle"></i></span>
+      <strong>{{ total_factures_payees }}</strong>
+      <p>Payees</p>
+    </article>
+    <article class="hc-stat">
+      <span><i class="fas fa-coins"></i></span>
+      <strong>{{ total_ttc }} EUR</strong>
+      <p>Total TTC</p>
+    </article>
+    <article class="hc-stat">
+      <span><i class="fas fa-percent"></i></span>
+      <strong>{{ tva_total }} EUR</strong>
+      <p>TVA</p>
+    </article>
+    <article class="hc-stat">
+      <span><i class="fas fa-bed"></i></span>
+      <strong>{{ taxe_sejour_total }} EUR</strong>
+      <p>Taxe sejour</p>
+    </article>
+  </div>
+</section>
+
+{% if stats_mensuelles %}
+<section class="hc-panel">
+  <div class="hc-panel-head">
+    <div>
+      <h2>Enquete mensuelle</h2>
+      <p>Arrivees, nuitees, clients et occupation.</p>
+    </div>
+  </div>
+  <div class="hc-table-wrap">
+    <table class="hc-table">
+      <thead>
+        <tr>
+          <th>Mois</th>
+          <th class="hc-num">Arr.</th>
+          <th class="hc-num">Nuits</th>
+          <th class="hc-num">Clients</th>
+          <th class="hc-num">Pers.</th>
+          <th class="hc-num">Fr.</th>
+          <th class="hc-num">Etr.</th>
+          <th class="hc-num">Occ.</th>
+          <th class="hc-num">Revenu</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in stats_mensuelles %}
+        <tr>
+          <td>{{ m.mois|date:"F Y" }}</td>
+          <td class="hc-num">{{ m.arrivees }}</td>
+          <td class="hc-num">{{ m.nuits_total|default:"0" }}</td>
+          <td class="hc-num">{{ m.clients_uniques }}</td>
+          <td class="hc-num">{{ m.personnes_total|default:"0" }}</td>
+          <td class="hc-num">{{ m.clients_francais }}</td>
+          <td class="hc-num">{{ m.clients_etrangers }}</td>
+          <td class="hc-num">{{ m.taux_occupation|default:"0" }}%</td>
+          <td class="hc-num">{{ m.revenu_total }} EUR</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+<section class="hc-panel">
+  <div class="hc-panel-head">
+    <div>
+      <h2>Dernieres factures</h2>
+      <p>Acces rapide aux derniers dossiers.</p>
+    </div>
+    <a href="{% url 'facture_create' %}" class="hc-btn hc-btn-primary"><i class="fas fa-plus"></i> Nouvelle facture</a>
+  </div>
+  <div class="hc-table-wrap">
+    <table class="hc-table">
+      <thead>
+        <tr>
+          <th>N resa</th>
+          <th>Client</th>
+          <th>Arrivee</th>
+          <th>Depart</th>
+          <th>Statut</th>
+          <th>Paiement</th>
+          <th class="hc-num">TTC</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in recent_factures %}
+          <tr>
+            <td><strong>{{ f.numero_reservation }}</strong></td>
+            <td>{{ f.client }}</td>
+            <td>{{ f.date_arrivee|date:"d/m/Y" }}</td>
+            <td>{{ f.date_depart|date:"d/m/Y" }}</td>
+            <td><span class="hc-badge hc-badge-{{ f.statut|lower }}">{{ f.get_statut_display }}</span></td>
+            <td>{{ f.get_moyen_paiement_display|default:"-" }}</td>
+            <td class="hc-num">{{ f.total_ttc }} EUR</td>
+            <td class="hc-actions">
+              <a href="{% url 'facture_detail' f.pk %}" title="Voir"><i class="fas fa-eye"></i></a>
+              <a href="{% url 'facture_update' f.pk %}" title="Modifier"><i class="fas fa-pen"></i></a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="hc-empty">Aucune facture pour le moment.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
